@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<pre id="log"></pre>
+<script type="text/javascript">
+  const urlParams = new URLSearchParams(window.location.search);
+  const stocks = urlParams.get('stocks');
+  ws = new WebSocket("ws://localhost:1337/stream?stocks="+stocks);
+  ws.onmessage = function(e) {
+    document.getElementById("log").innerHTML = e.data +"\n" + document.getElementById("log").innerHTML;
+  };
+</script>
+<body>
+
+</body>
+</html>
