@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-mkdir -p "data/ocker/mysql"
-mkdir -p "data/ocker/rabbitmq"
+mkdir -p "data/docker/mysql"
+mkdir -p "data/docker/rabbitmq"
 
 IS_ICHIMOKU_PHP=$(docker images | grep ichimoku-php -c)
 
