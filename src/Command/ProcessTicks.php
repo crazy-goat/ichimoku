@@ -23,7 +23,7 @@ class ProcessTicks extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $queue = $input->getOption('queue') ?? 'save_mysql';
+        $queue = $input->getOption('queue') ?? 'save_mysql_tick';
 
         $rabbitMq = RabbitMqReader::createFromConfig(['queue' => $queue]);
         $mysql = MysqlTickWriter::createFromConfig([]);

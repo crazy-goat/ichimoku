@@ -217,6 +217,12 @@
     "ralouphie/getallheaders": {
         "version": "3.0.3"
     },
+    "rubix/ml": {
+        "version": "1.2.0"
+    },
+    "scienide/tensor": {
+        "version": "3.0.0"
+    },
     "symfony/cache": {
         "version": "v5.3.4"
     },
@@ -365,5 +371,14 @@
     },
     "symfony/yaml": {
         "version": "v5.3.6"
+    },
+    "voku/portable-ascii": {
+        "version": "1.5.6"
+    },
+    "voku/portable-utf8": {
+        "version": "5.4.51"
+    },
+    "wamania/php-stemmer": {
+        "version": "v2.2.0"
     }
 }

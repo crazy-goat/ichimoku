@@ -32,6 +32,8 @@ services:
             $vhost: '%env(resolve:RABBITMQ_VHOST)%'
 
     # commands
+    CrazyGoat\Forex\Command\SetupRabbit:
+        tags: [ 'console.command' ]
     CrazyGoat\Forex\Draw\Command\History:
         tags: [ 'console.command' ]
     CrazyGoat\Forex\Command\CreateCandles:

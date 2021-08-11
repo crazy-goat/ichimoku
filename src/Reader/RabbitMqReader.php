@@ -24,7 +24,7 @@ class RabbitMqReader implements ReaderInterface
 
     public static function createFromConfig(array $params): RabbitMqReader
     {
-        $connection = new AMQPStreamConnection('rabbitmq.local', 5672, 'rabbitmq', 'rabbitmq');
+        $connection = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
 
         return new RabbitMqReader($connection, $params['queue']);
     }

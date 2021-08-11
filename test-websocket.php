@@ -24,7 +24,7 @@ $websocket = websocket(
             $this->queue[$clientId] = uniqid('client_') . uniqid('-');
             $exchange = 'prices.websocket';
 
-            $this->connection[$clientId] = new AMQPStreamConnection('rabbitmq.local', 5672, 'rabbitmq', 'rabbitmq');
+            $this->connection[$clientId] = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
             $this->channel[$clientId] = $this->connection[$clientId]->channel();
             $this->channel[$clientId]->queue_declare($this->queue[$clientId], false, false, true);
             $this->channel[$clientId]->exchange_declare($exchange, AMQPExchangeType::DIRECT, true);

@@ -24,7 +24,7 @@ class RabbitMQ implements WriterInterface
 
     public static function createFromConfig(array $params): RabbitMQ
     {
-        $connection = new AMQPStreamConnection('rabbitmq.local', 5672, 'rabbitmq', 'rabbitmq');
+        $connection = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
 
         return new self($connection, $params['exchange'] ?? 'prices.fanout');
     }

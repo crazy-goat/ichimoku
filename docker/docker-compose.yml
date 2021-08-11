@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  web:
+    image: ichimoku-php
+    volumes:
+      - "$PWD/../:/var/www/ichimoku"
+    depends_on:
+      - rabbitmq
+      - mariadb
+  rabbitmq:
+    image: rabbitmq:management
+    restart: always
+    volumes:
+      - "$PWD/../data/docker/rabbitmq:/var/lib/rabbitmq/mnesia:rw"
+  mariadb:
+    image: mariadb:10.6
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - "$PWD/../data/docker/mysql:/var/lib/mysql:rw"
