@@ -8,4 +8,4 @@ if [ "$IS_ICHIMOKU_PHP" = "0" ];then
   cd docker/ichimoku && docker build -t ichimoku-php . && cd ..
 fi
 
-cd docker && docker-compose -p ichimoku -f docker-compose.yml up
+cd docker && docker-compose -p ichimoku -f docker-compose.yml up -d

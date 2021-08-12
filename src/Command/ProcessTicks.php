@@ -9,41 +9,37 @@ use CrazyGoat\Forex\ValueObject\TickPrice;
 use CrazyGoat\Forex\Writer\MysqlTickWriter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ProcessTicks extends Command
 {
     protected static $defaultName = 'forex:process:rabbimq:tick';
+    private RabbitMqReader $rabbitmq;
+    private MysqlTickWriter $mysql;
 
-    protected function configure()
+    public function __construct(MysqlTickWriter $mysql, RabbitMqReader $rabbitmq)
     {
-        $this->addOption('queue', null, InputOption::VALUE_REQUIRED, 'Queue name');
+        parent::__construct();
+        $this->mysql = $mysql;
+        $this->rabbitmq = $rabbitmq;
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $queue = $input->getOption('queue') ?? 'save_mysql_tick';
-
-        $rabbitMq = RabbitMqReader::createFromConfig(['queue' => $queue]);
-        $mysql = MysqlTickWriter::createFromConfig([]);
-
-        foreach ($rabbitMq->read() as $msgs) {
+        foreach ($this->rabbitmq->read() as $massage) {
             try {
-                if ($msgs !== []) {
-                    $msg = reset($msgs);
-                    foreach ($msgs as $msg) {
+                if ($massage !== []) {
+                    $msg = reset($massage);
+                    foreach ($massage as $msg) {
                         $data = json_decode($msg->body, true);
-                        $mysql->write(TickPrice::fromArray($data));
+                        $this->mysql->write(TickPrice::fromArray($data));
                     }
-                    $mysql->ack();
-                    $rabbitMq->ack($msg);
+                    $this->mysql->ack();
+                    $this->rabbitmq->ack($msg);
                 }
             } catch (\Throwable $exception) {
-                var_dump($exception->getMessage());
-                if ($msgs !== []) {
-                    $last = end($msgs);
-                    $mysql->nack($last);
+                if ($massage !== []) {
+                    $this->mysql->nack();
                 }
             }
         }

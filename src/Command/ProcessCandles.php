@@ -15,6 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ProcessCandles extends Command
 {
     protected static $defaultName = 'forex:process:rabbimq:candle';
+    private MysqlCandleWriter $mysqlWriter;
+
+    public function __construct(MysqlCandleWriter $mysqlWriter)
+    {
+        parent::__construct();
+        $this->mysqlWriter = $mysqlWriter;
+    }
 
     protected function configure()
     {
@@ -26,24 +33,21 @@ class ProcessCandles extends Command
         $queue = $input->getOption('queue') ?? 'save_mysql_candle';
 
         $rabbitMq = RabbitMqReader::createFromConfig(['queue' => $queue]);
-        $mysql = MysqlCandleWriter::createFromConfig([]);
 
-        foreach ($rabbitMq->read() as $msgs) {
+        foreach ($rabbitMq->read() as $massages) {
             try {
-                if ($msgs !== []) {
-                    $msg = reset($msgs);
-                    foreach ($msgs as $msg) {
-                        $data = json_decode($msg->body, true);
-                        $mysql->write(Candle::fromArray($data));
+                if ($massages !== []) {
+                    $massage = reset($massages);
+                    foreach ($massages as $massage) {
+                        $data = json_decode($massage->body, true);
+                        $this->mysqlWriter->write(Candle::fromArray($data));
                     }
-                    $mysql->ack();
-                    $rabbitMq->ack($msg);
+                    $this->mysqlWriter->ack();
+                    $rabbitMq->ack($massage);
                 }
             } catch (\Throwable $exception) {
-                var_dump($exception->getMessage());
-                if ($msgs !== []) {
-                    $last = end($msgs);
-                    $mysql->nack($last);
+                if ($massages !== []) {
+                    $this->mysqlWriter->nack();
                 }
             }
         }

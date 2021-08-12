@@ -6,7 +6,7 @@ use CrazyGoat\Forex\ValueObject\Candle;
 use CrazyGoat\Forex\ValueObject\Pair;
 use CrazyGoat\Forex\ValueObject\Period;
 use CrazyGoat\Forex\ValueObject\TickPrice;
-use CrazyGoat\Forex\Writer\RabbitMQ;
+use CrazyGoat\Forex\Writer\RabbitMQWriter;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -48,7 +48,7 @@ class PushToRabbit extends Command
             $file = $this->cacheDir . '/stooq/' . str_replace('/', '', $pair->symbol() . '_D.csv');
         }
 
-        $rabbitMQ = RabbitMQ::createFromConfig(['exchange' => 'candle.import']);
+        $rabbitMQ = RabbitMQWriter::createFromConfig(['exchange' => 'candle.import']);
 
         $content = file_get_contents($file);
         $prices = preg_split('/\r\n|\r|\n/', $content);

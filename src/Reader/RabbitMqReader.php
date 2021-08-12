@@ -12,7 +12,7 @@ class RabbitMqReader implements ReaderInterface
 {
     private string $queue;
     private AMQPChannel $channel;
-    private array $msgs = [];
+    private array $massages = [];
 
     public function __construct(AMQPStreamConnection $connection, string $queue)
     {
@@ -39,21 +39,21 @@ class RabbitMqReader implements ReaderInterface
             false,
             false,
             function ($msg) {
-                $this->msgs[] = $msg;
+                $this->massages[] = $msg;
             }
         );
 
         while ($this->channel->is_consuming()) {
-            if (count($this->msgs) >= 50) {
-                yield $this->msgs;
-                $this->msgs = [];
+            if (count($this->massages) >= 50) {
+                yield $this->massages;
+                $this->massages = [];
             }
 
             try {
                 $this->channel->wait(null, false, 0.1);
             } catch (AMQPTimeoutException $exception) {
-                yield $this->msgs;
-                $this->msgs = [];
+                yield $this->massages;
+                $this->massages = [];
             }
         }
     }

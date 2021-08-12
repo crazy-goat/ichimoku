@@ -9,7 +9,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class RabbitMQ implements WriterInterface
+class RabbitMQWriter implements WriterInterface
 {
     private AMQPChannel $channel;
     private string $exchange;
@@ -22,7 +22,7 @@ class RabbitMQ implements WriterInterface
         $this->exchange = $exchange;
     }
 
-    public static function createFromConfig(array $params): RabbitMQ
+    public static function createFromConfig(array $params): RabbitMQWriter
     {
         $connection = new AMQPStreamConnection('rabbitmq', 5672, 'guest', 'guest');
 

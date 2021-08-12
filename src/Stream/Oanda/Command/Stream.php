@@ -6,7 +6,7 @@ namespace CrazyGoat\Forex\Stream\Oanda\Command;
 use CrazyGoat\Forex\Service\RC4Crypt;
 use CrazyGoat\Forex\Stream\Oanda\DTO\OandaTickPriceCollection;
 use CrazyGoat\Forex\ValueObject\TickPriceCollection;
-use CrazyGoat\Forex\Writer\RabbitMQ;
+use CrazyGoat\Forex\Writer\RabbitMQWriter;
 use GuzzleHttp\Client;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Console\Command\Command;
@@ -16,21 +16,27 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Stream extends Command
 {
     protected static $defaultName = 'forex:stream:oanda';
+    private RabbitMQWriter $rabbitMQ;
+
+    public function __construct(RabbitMQWriter $rabbitMQ)
+    {
+        parent::__construct();
+        $this->rabbitMQ = $rabbitMQ;
+    }
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $client = new Client();
         $decoder = new RC4Crypt($this->fetchRC4Key($client));
 
-        $rabbitMQ = RabbitMQ::createFromConfig([]);
         while (true) {
             $last = null;
             foreach ($this->fetchPrices($client, $decoder)->prices() as $tick) {
-                $last = $rabbitMQ->write($tick);
+                $last = $this->rabbitMQ->write($tick);
             }
 
             if ($last instanceof AMQPMessage) {
-                $rabbitMQ->ack();
+                $this->rabbitMQ->ack();
             }
 
             usleep(2000000);

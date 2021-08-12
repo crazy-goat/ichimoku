@@ -7,7 +7,7 @@ use CrazyGoat\Forex\Service\PeriodTime;
 use CrazyGoat\Forex\ValueObject\Candle;
 use CrazyGoat\Forex\ValueObject\Pair;
 use CrazyGoat\Forex\ValueObject\Period;
-use CrazyGoat\Forex\Writer\RabbitMQ;
+use CrazyGoat\Forex\Writer\RabbitMQWriter;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -78,7 +78,7 @@ class CreateCandles extends Command
         }
 
         $dateFrom->setTime(0, 0);
-        $rabbitMQ = RabbitMQ::createFromConfig(['exchange' => 'candle.import']);
+        $rabbitMQ = RabbitMQWriter::createFromConfig(['exchange' => 'candle.import']);
 
         foreach ($periods as $period) {
             $interval = new \DateInterval('PT' . PeriodTime::seconds($period) . 'S');

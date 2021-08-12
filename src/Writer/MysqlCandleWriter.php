@@ -15,20 +15,6 @@ class MysqlCandleWriter
         $this->connection = $connection;
     }
 
-    public static function createFromConfig(array $params): MysqlCandleWriter
-    {
-        $connectionParams = array(
-            'dbname' => 'fx_prices',
-            'user' => 'root',
-            'password' => 'root',
-            'host' => '127.0.0.1',
-            'port' => 6033,
-            'driver' => 'pdo_mysql',
-        );
-        $conn = DriverManager::getConnection($connectionParams);
-        return new MysqlCandleWriter($conn);
-    }
-
     public function write(Candle $price)
     {;
         if (!$this->connection->isTransactionActive()) {

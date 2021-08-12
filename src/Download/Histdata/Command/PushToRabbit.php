@@ -7,7 +7,7 @@ use CrazyGoat\Forex\ValueObject\Candle;
 use CrazyGoat\Forex\ValueObject\Pair;
 use CrazyGoat\Forex\ValueObject\Period;
 use CrazyGoat\Forex\ValueObject\TickPrice;
-use CrazyGoat\Forex\Writer\RabbitMQ;
+use CrazyGoat\Forex\Writer\RabbitMQWriter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -36,7 +36,7 @@ class PushToRabbit extends Command
             return Command::INVALID;
         }
 
-        $rabbitMQ = RabbitMQ::createFromConfig(
+        $rabbitMQ = RabbitMQWriter::createFromConfig(
             ['exchange' => $period->period() === Period::T ? 'prices.import' : 'candle.import']
         );
 

@@ -8,7 +8,7 @@ use CrazyGoat\Forex\Stream\Stooq\DTO\StooqSymbols;
 use CrazyGoat\Forex\Stream\Stooq\DTO\StooqTickPriceCollection;
 use CrazyGoat\Forex\ValueObject\Pair;
 use CrazyGoat\Forex\ValueObject\PairCollection;
-use CrazyGoat\Forex\Writer\RabbitMQ;
+use CrazyGoat\Forex\Writer\RabbitMQWriter;
 use GuzzleHttp\Client;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Http\Message\ResponseInterface;
@@ -19,12 +19,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Stream extends Command
 {
-    private RabbitMQ $rabbitMQ;
+    private RabbitMQWriter $rabbitMQ;
 
     public function __construct()
     {
         parent::__construct();
-        $this->rabbitMQ = RabbitMQ::createFromConfig([]);
+        $this->rabbitMQ = RabbitMQWriter::createFromConfig([]);
     }
 
     protected function configure()
