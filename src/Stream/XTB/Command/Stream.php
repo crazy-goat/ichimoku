@@ -56,6 +56,7 @@ class Stream extends Command
                 $pair = Pair::fromString($symbol);
                 $client->registerPair($pair);
             }
+
             while ($message = yield $client->listen()) {
                 $payload = yield $message->buffer();
                 $tick = XTBTickPrice::fromString($payload);

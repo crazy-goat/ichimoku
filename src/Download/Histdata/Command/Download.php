@@ -101,7 +101,7 @@ class Download extends Command
     protected function configure()
     {
         $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED, 'Select from: ' . self::PAIRS);
-        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Select from: T, M1', 'T');
+        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Select from: T, 1', '1');
     }
 
     /**

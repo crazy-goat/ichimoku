@@ -17,7 +17,7 @@ class DownloadMonth extends Command
     protected function configure()
     {
         $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED, 'Select from: ' . Download::PAIRS);
-        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Select from: T, M1', 'T');
+        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Select from: T, 1', '1');
         $this->addOption('year', 'y', InputOption::VALUE_REQUIRED, 'Date start from. Format YYYY');
         $this->addOption('month', 'm', InputOption::VALUE_REQUIRED, 'Date start from. Format MM');
         $this->addOption('file', 'f', InputOption::VALUE_REQUIRED, 'Output file');
