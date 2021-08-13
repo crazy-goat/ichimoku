@@ -7,6 +7,9 @@ services:
     depends_on:
       - rabbitmq
       - mariadb
+    environment:
+      XTB_PASSWORD: "${XTB_PASSWORD}"
+      XTB_USERNAME: "${XTB_USERNAME}"
   rabbitmq:
     image: rabbitmq:management
     restart: always

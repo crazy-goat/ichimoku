@@ -1,0 +1,25 @@
+App\Entity\DoctrineMigrationVersions:
+    type: entity
+    table: doctrine_migration_versions
+    id:
+        version:
+            type: string
+            nullable: false
+            length: 191
+            options:
+                fixed: false
+            id: true
+            generator:
+                strategy: IDENTITY
+    fields:
+        executedAt:
+            type: datetime
+            nullable: true
+            column: executed_at
+        executionTime:
+            type: integer
+            nullable: true
+            options:
+                unsigned: false
+            column: execution_time
+    lifecycleCallbacks: {  }

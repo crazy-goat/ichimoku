@@ -77,6 +77,8 @@ services:
       $rabbitMQ: '@rabbitmq.writer.stream'
   CrazyGoat\Forex\Stream\Stooq\Command\Stream:
     tags: [ 'console.command' ]
+  CrazyGoat\Forex\Stream\XTB\Command\Symbols:
+    tags: [ 'console.command' ]
   CrazyGoat\Forex\WebSocket\Command\TickStream:
     tags: [ 'console.command' ]
   CrazyGoat\Forex\WebSocket\TickServer:
@@ -89,6 +91,11 @@ services:
     tags: [ 'console.command' ]
     arguments:
       - '%kernel.cache_dir%'
+
+  CrazyGoat\Forex\Stream\XTB\Command\Stream:
+    tags: [ 'console.command' ]
+    arguments:
+      $rabbitMQ: '@rabbitmq.writer.stream'
 
   CrazyGoat\Forex\ML\Command\LearnDaily:
     tags: [ 'console.command' ]

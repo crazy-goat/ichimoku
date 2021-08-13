@@ -9,4 +9,6 @@
 /vendor/
 .idea
 data
+/docker/.env
+.env
 ###< symfony/framework-bundle ###

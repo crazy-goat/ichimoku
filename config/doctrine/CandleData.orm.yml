@@ -1,0 +1,44 @@
+App\Entity\CandleData:
+    type: entity
+    table: candle_data
+    id:
+        symbol:
+            type: string
+            nullable: false
+            length: 16
+            options:
+                fixed: false
+            id: true
+        time:
+            type: datetime
+            nullable: false
+            id: true
+        period:
+            type: string
+            nullable: false
+            length: 2
+            options:
+                fixed: false
+            id: true
+    fields:
+        open:
+            type: decimal
+            nullable: false
+            precision: 20
+            scale: 6
+        high:
+            type: decimal
+            nullable: false
+            precision: 20
+            scale: 6
+        low:
+            type: decimal
+            nullable: false
+            precision: 20
+            scale: 6
+        close:
+            type: decimal
+            nullable: false
+            precision: 20
+            scale: 6
+    lifecycleCallbacks: {  }
