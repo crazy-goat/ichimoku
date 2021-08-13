@@ -10,7 +10,6 @@ use CrazyGoat\Forex\ValueObject\Period;
 use CrazyGoat\Forex\Writer\RabbitMQWriter;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -31,99 +30,78 @@ class CreateCandles extends Command
     protected function configure()
     {
         $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED, 'Forex pair');
-        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Period 1,5,15 ... D,W');
+        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Period 1,5,15 ... D,W', 'H4');
         $this->addOption('date', 'd', InputOption::VALUE_REQUIRED, 'Date start from. Format YYYY-MM-DD');
-        $this->addOption('src-period', 'SP', InputOption::VALUE_REQUIRED, 'Source periods', Period::T);
+
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $sourcePeriod = Period::fromString($input->getOption('src-period'));
-
-        $pair = $input->getOption('pair');
-        if ($pair === null) {
-            $output->writeln('At least one pair must be provided.');
-
-            return Command::INVALID;
-        }
-
-        $pair = Pair::fromString($pair);
-
-        if ($input->getOption('date') === null) {
-            $dateFrom = $this->fetchStartingDate($pair, $sourcePeriod);
-        } else {
-            $dateFrom = \DateTime::createFromFormat('Y-m-d', $input->getOption('date'));
-        }
-
-        if (!$dateFrom instanceof \DateTime) {
-            $output->writeln('Invalid date');
-
-            return Command::INVALID;
-        }
-
-        $periods = array_filter(
-            self::getAllPeriods(),
-            function (Period $period) use ($sourcePeriod) {
-                return !in_array($period->period(), [Period::T, $sourcePeriod->period()], true);
-            }
-        );
-
-        if ($input->getOption('period') !== []) {
-            $periods = array_map(
-                function (string $period): Period {
-                    return Period::fromString($period);
-                },
-                $input->getOption('period')
-            );
-        }
-
-        $dateFrom->setTime(0, 0);
+        $pairs = $this->fetchAllPairs();
+        $period = Period::fromString($input->getOption('period'));
         $rabbitMQ = RabbitMQWriter::createFromConfig(['exchange' => 'candle.import']);
 
-        foreach ($periods as $period) {
+
+        foreach ($pairs as $pair) {
+            $lastCandle = null;
+            $dateFrom = $this->fetchStartingDate($pair, new Period(Period::H4));
+            $dateFrom->setTime(0, 0);
             $interval = new \DateInterval('PT' . PeriodTime::seconds($period) . 'S');
             $dateRange = new \DatePeriod($dateFrom, $interval, new \DateTime());
 
-            $progressBar = new ProgressBar($output, iterator_count($dateRange));
-            $progressBar->setFormat($period->period() . ': %current%/%max%[%bar%] %percent%%, %remaining%');
-            $progressBar->start();
-
-            $lastCandle = null;
             /** @var \DateTime $time */
             foreach ($dateRange as $time) {
-                if ($period->period() === Period::T) {
-                    $candle = $this->createFromTicks($pair, $period, $time, $lastCandle);
-                } else {
-                    $candle = $this->createFromCandles($pair, $period, $sourcePeriod, $time, $lastCandle);
-                }
-
+                $output->writeln(sprintf("Pair: %s, time: %s", $pair->symbol(), $time->format('Y-m-d H:i:s')));
+                $candle = $this->createFromTicks($pair, $period, $time, $lastCandle);
                 if ($candle instanceof Candle) {
                     $rabbitMQ->write($candle);
                     $rabbitMQ->ack();
-                    $progressBar->advance();
                     $lastCandle = $candle;
                 }
             }
-            $progressBar->finish();
-            $output->writeln("");
         }
+        $output->writeln("");
 
 
         return Command::SUCCESS;
     }
 
-    private function fetchStartingDate(Pair $pair, Period $sourcePeriod): \DateTime
+    private function fetchStartingDate(Pair $pair, Period $period): \DateTime
     {
         $date = \DateTime::createFromFormat(
             'Y-m-d H:i:s.u',
             $this->connection->executeQuery(
-                'SELECT MIN(`time`) FROM ' . ($sourcePeriod->period(
-                ) === Period::T ? 'tick_data' : 'candle_data') . ' WHERE symbol = :symbol',
+                'SELECT 
+                td.time
+            FROM
+                tick_data td
+            WHERE
+                td.symbol = :symbol
+                    AND td.time > (SELECT 
+                        cd.time
+                    FROM
+                        candle_data cd
+                    WHERE
+                        cd.symbol = :symbol
+                            AND cd.period = :period
+                    ORDER BY cd.time DESC
+                    LIMIT 1)
+            ORDER BY td.time ASC
+            LIMIT 1',
                 [
                     'symbol' => $pair->symbol(),
+                    'period' => $period->period()
                 ],
             )->fetchOne()
         );
+
+        if ($date === false) {
+            $date = \DateTime::createFromFormat(
+                'Y-m-d H:i:s.u',
+                $this->connection->executeQuery('SELECT td.time FROM tick_data td ORDER BY td.time ASC LIMIT 1')->fetchOne()
+            );
+
+        }
 
         if ($date === false) {
             throw new \Exception('Could not found starting point');
@@ -171,47 +149,18 @@ class CreateCandles extends Command
         return null;
     }
 
-    private function createFromCandles(Pair $pair, Period $period, Period $srcPeriod, \DateTime $time, ?Candle $last): ?Candle
+    /**
+     * @return Pair[]
+     * @throws \Doctrine\DBAL\Driver\Exception
+     * @throws \Doctrine\DBAL\Exception
+     */
+    private function fetchAllPairs(): array
     {
-        $data = $this->connection->executeQuery(
-            'SELECT MAX(cd.high) as high, MIN(cd.low) as low, cd.open ,cd.close FROM
-                (SELECT
-                    open,
-                    high,
-                    low,
-                    close,
-                    FIRST_VALUE(open) over (ORDER BY `time`) as `new_open`,
-                    LAST_VALUE(close) over (ORDER BY `time`) as `new_close`
-                FROM
-                    fx_prices.candle_data
-                WHERE
-                    symbol = :symbol
-                        AND period = :period 
-                        AND `time` >= :start
-                        AND `time` < :end 
-                        ORDER BY `time`) as cd',
-            [
-                'symbol' => $pair->symbol(),
-                'period' => $srcPeriod->period(),
-                'start' => $time->format('Y-m-d H:i:s.u'),
-                'end' => (clone $time)->modify('+' . PeriodTime::seconds($period) . ' seconds')->format('Y-m-d H:i:s.u')
-            ]
-        )->fetchAssociative();
-
-        if (is_array($data) && $data['high']) {
-            return Candle::fromArray(
-                array_merge(
-                    $data,
-                    [
-                        'symbol' => $pair->symbol(),
-                        'period' => $period->period(),
-                        'date' => $time->format(Candle::DATE_FORMAT),
-                        'open' => $last ? $last->close() : $data['open']
-                    ]
-                )
-            );
-        }
-
-        return null;
+        return array_map(
+            function (string $symbol): Pair {
+                return Pair::fromString($symbol);
+            },
+            $this->connection->executeQuery('select symbol from tick_data group by symbol order by symbol')->fetchFirstColumn()
+        );
     }
 }

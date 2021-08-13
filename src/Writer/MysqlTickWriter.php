@@ -34,6 +34,7 @@ class MysqlTickWriter implements WriterInterface
         if (!$this->connection->isTransactionActive()) {
             $this->connection->beginTransaction();
         }
+        //var_dump($price->formattedTime());
         $this->connection->executeStatement(
             'INSERT INTO tick_data VALUES (:symbol, :time, :bid, :ask) ON DUPLICATE KEY UPDATE bid=:bid, ask=:ask',
             [

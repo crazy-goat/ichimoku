@@ -4,17 +4,17 @@ set -x
 
 DIR='/var/www/ichimoku'
 
-#if [ ! -f "$DIR/composer.json" ]; then
-#  rm -rf "$DIR"
-#  git clone https://github.com/crazy-goat/ichimoku.git "$DIR"
-#fi
-cd "$DIR"
+if [ ! -f "$DIR/composer.json" ]
+then
+  echo "No source data found"
+  exit 1;
+fi
 
+cd "$DIR"
 echo "Waiting for database connection"
 until nc -z -v -w30 mariadb 3306
 do
   echo "Waiting for rabbitmq connection"
-  # wait for 5 seconds before check again
   sleep 1
 done
 
