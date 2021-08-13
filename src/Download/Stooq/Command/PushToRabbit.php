@@ -20,7 +20,7 @@ class PushToRabbit extends Command
 
     public function __construct(string $cacheDir)
     {
-        parent::__construct(null);
+        parent::__construct();
 
         $this->cacheDir = $cacheDir;
     }
@@ -34,11 +34,13 @@ class PushToRabbit extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        ini_set('memory_limit', '-1');
+
         $pair = $input->getOption('pair');
         $file = $input->getOption('file');
 
         if ($pair === null) {
-            $output->writeln('Pair must be provided. Avail pairs: ' . Download::PAIRS);
+            $output->writeln('Pair must be provided. Avail pairs: ');
             return Command::INVALID;
         }
 
@@ -73,6 +75,7 @@ class PushToRabbit extends Command
                     }
                 }
             }
+            $rabbitMQ->ack();
         }
 
         return Command::SUCCESS;

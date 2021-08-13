@@ -8,6 +8,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
 
 class Download extends Command
 {
@@ -18,50 +19,70 @@ class Download extends Command
 
     public function __construct(string $cacheDir)
     {
-        parent::__construct(null);
-
+        parent::__construct();
         $this->cacheDir = $cacheDir;
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $pair = $input->getOption('pair');
-        $file = $input->getOption('file');
+        $pairs = $input->getOption('pair');
 
-        if ($pair === null) {
+        if ($pairs === []) {
             $output->writeln('Pair must be provided. Avail pairs: ' . implode(', ', Download::SYMBOLS));
 
             return Command::INVALID;
         }
 
-        $pair = Pair::fromString($pair);
-
-        if ($file === null) {
-            $file = $this->cacheDir . '/stooq/' . str_replace('/', '', $pair->symbol() . '_D.csv');
-        }
-
-        if (!is_dir(dirname($file))) {
-            mkdir(dirname($file), 0777, true);
-        }
         $archiveFilename = $this->cacheDir . '/stooq/daily_' . date_format(new \DateTime(), 'Y-m-d') . '.zip';
         if ($this->fetchArchive($archiveFilename)) {
-            $content = $this->unpack($archiveFilename, $pair);
-            if ($content !== null) {
-                file_put_contents($file, $content);
+            foreach ($pairs as $pair) {
+                $pair = Pair::fromString($pair);
+                $file = $this->cacheDir . '/stooq/' . str_replace('/', '', $pair->symbol() . '_D.csv');
+
+                if (!is_dir(dirname($file))) {
+                    mkdir(dirname($file), 0777, true);
+                }
+
+                $content = $this->unpack($archiveFilename, $pair);
+                if ($content !== null) {
+                    $output->writeln('Unpack date for pair: '.$pair->symbol());
+                    file_put_contents($file, $content);
+                    $process = new Process(
+                        [
+                            './bin/console',
+                            'forex:download:stooq:process',
+                            '--pair',
+                            $pair->symbol()
+                        ],
+                        realpath(__DIR__ . '/../../../../')
+                    );
+                    $process->setTimeout(null);
+                    $process->start();
+                    $process->wait();
+
+                } else {
+                    $output->writeln('No data for pair: '.$pair->symbol());
+                }
             }
         }
         return Command::SUCCESS;
     }
 
     private function unpack(string $archive, Pair $pair): ?string {
-        $file = 'data/daily/world/currencies\major/'.strtolower($pair->first()).strtolower($pair->second()).'.txt';
+        $files = [
+            'data/daily/world/currencies\major/'.strtolower($pair->first()).strtolower($pair->second()).'.txt',
+            'data/daily/world/currencies\other/'.strtolower($pair->first()).strtolower($pair->second()).'.txt',
+            ];
         $zip = new \ZipArchive();
         if ($zip->open($archive)) {
-            echo "Archive Open".PHP_EOL;
-            echo "$file".PHP_EOL;
-            $content = $zip->getFromName($file);
+            foreach ($files as $file) {
+                $content = $zip->getFromName($file);
+                if ($content !== false) {
+                    $zip->close();
+                    return $content;
+                }
+            }
             $zip->close();
-            return $content;
         }
 
         return null;
@@ -89,7 +110,7 @@ class Download extends Command
 
     protected function configure()
     {
-        $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED, 'Select from: ' . implode(', ', Download::SYMBOLS));
+        $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Select from: ' . implode(', ', Download::SYMBOLS));
         $this->addOption('file', 'f', InputOption::VALUE_REQUIRED, 'Output file');
     }
 }
