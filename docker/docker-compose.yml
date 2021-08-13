@@ -10,15 +10,21 @@ services:
     environment:
       XTB_PASSWORD: "${XTB_PASSWORD}"
       XTB_USERNAME: "${XTB_USERNAME}"
+      RABBITMQ_USERNAME: "${RABBITMQ_USERNAME}"
+      RABBITMQ_PASSWORD: "${RABBITMQ_PASSWORD}"
+      MYSQL_USERNAME: "${MYSQL_USERNAME}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
   rabbitmq:
     image: rabbitmq:management
     restart: always
     volumes:
       - "$PWD/../data/docker/rabbitmq:/var/lib/rabbitmq/mnesia:rw"
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit default_user \"${RABBITMQ_USERNAME}\" -rabbit default_pass \"${RABBITMQ_PASSWORD}\""
   mariadb:
     image: mariadb:10.6
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
     volumes:
       - "$PWD/../data/docker/mysql:/var/lib/mysql:rw"

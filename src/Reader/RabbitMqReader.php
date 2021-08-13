@@ -17,8 +17,8 @@ class RabbitMqReader implements ReaderInterface
     public function __construct(AMQPStreamConnection $connection, string $queue)
     {
         $this->channel = $connection->channel();
-        $this->channel->basic_qos(null, 100, null);
         $this->channel->queue_declare($queue, true);
+        //$this->channel->basic_qos(null, 100, null);
         $this->queue = $queue;
     }
 

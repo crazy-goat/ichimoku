@@ -22,11 +22,13 @@ class PushToRabbit extends Command
         $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED, 'Select from: ' . Download::PAIRS);
         $this->addOption('date', 'd', InputOption::VALUE_REQUIRED, 'Date start from. Format YYYY-MM');
         $this->addOption('file', 'f', InputOption::VALUE_REQUIRED, 'Output file');
-        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Select from: T, M1', 'T');
+        $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Select from: T, 1', '1');
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        ini_set('memory_limit', -1);
+
         $pair = Pair::fromString($input->getOption('pair') ?? '');
         $file = $input->getOption('file');
         $period = Period::fromString($input->getOption('period'));
@@ -39,7 +41,6 @@ class PushToRabbit extends Command
         $rabbitMQ = RabbitMQWriter::createFromConfig(
             ['exchange' => $period->period() === Period::T ? 'prices.import' : 'candle.import']
         );
-
 
         $zip = new \ZipArchive();
         if ($zip->open($file)) {

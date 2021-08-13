@@ -53,6 +53,10 @@ services:
     class: CrazyGoat\Forex\Reader\RabbitMqReader
     arguments:
       $queue: 'save_mysql_tick'
+  rabbitmq.reader.candle:
+    class: CrazyGoat\Forex\Reader\RabbitMqReader
+    arguments:
+      $queue: 'save_mysql_candle'
 
   # commands
   CrazyGoat\Forex\Command\SetupRabbit:
@@ -71,6 +75,10 @@ services:
     tags: [ 'console.command' ]
     arguments:
       $rabbitmq: '@rabbitmq.reader.tick'
+  CrazyGoat\Forex\Command\ProcessCandles:
+    tags: [ 'console.command' ]
+    arguments:
+      $rabbitmq: '@rabbitmq.reader.candle'
   CrazyGoat\Forex\Stream\Oanda\Command\Stream:
     tags: [ 'console.command' ]
     arguments:

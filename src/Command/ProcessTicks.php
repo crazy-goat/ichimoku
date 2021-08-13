@@ -26,20 +26,22 @@ class ProcessTicks extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach ($this->rabbitmq->read() as $massage) {
+        foreach ($this->rabbitmq->read() as $massages) {
             try {
-                if ($massage !== []) {
-                    $msg = reset($massage);
-                    foreach ($massage as $msg) {
-                        $data = json_decode($msg->body, true);
+                if ($massages !== []) {
+                    $massage = reset($massages);
+                    foreach ($massages as $massage) {
+                        $data = json_decode($massage->body, true);
                         $this->mysql->write(TickPrice::fromArray($data));
                     }
                     $this->mysql->ack();
-                    $this->rabbitmq->ack($msg);
+                    $this->rabbitmq->ack($massage);
                 }
             } catch (\Throwable $exception) {
-                if ($massage !== []) {
+                if ($massages !== []) {
+                    $massage = reset($massages);
                     $this->mysql->nack();
+                    $this->rabbitmq->nack($massage);
                 }
             }
         }
