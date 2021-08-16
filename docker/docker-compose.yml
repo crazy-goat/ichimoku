@@ -22,7 +22,7 @@ services:
     environment:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit default_user \"${RABBITMQ_USERNAME}\" -rabbit default_pass \"${RABBITMQ_PASSWORD}\""
   mariadb:
-    image: mariadb:10.6
+    image: mariadb-rocksdb
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
