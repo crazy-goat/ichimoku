@@ -95,11 +95,18 @@ services:
     tags: [ 'console.command' ]
     arguments:
       - '%kernel.cache_dir%'
+  CrazyGoat\Forex\Download\Stooq\Command\DownloadHourly:
+    tags: [ 'console.command' ]
+    arguments:
+      - '%kernel.cache_dir%'
   CrazyGoat\Forex\Download\Stooq\Command\PushToRabbit:
     tags: [ 'console.command' ]
     arguments:
       - '%kernel.cache_dir%'
-
+  CrazyGoat\Forex\Download\Stooq\Command\PushToRabbitHourly:
+    tags: [ 'console.command' ]
+    arguments:
+      - '%kernel.cache_dir%'
   CrazyGoat\Forex\Stream\XTB\Command\Stream:
     tags: [ 'console.command' ]
     arguments:

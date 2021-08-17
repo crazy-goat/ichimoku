@@ -4,17 +4,20 @@ namespace CrazyGoat\Forex\Download\Stooq\Command;
 
 use CrazyGoat\Forex\ValueObject\Pair;
 use GuzzleHttp\Client;
+use GuzzleHttp\TransferStats;
+use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 
-class Download extends Command
+class DownloadHourly extends Command
 {
     public const SYMBOLS = ['USD/CHF'];
 
-    protected static $defaultName = 'forex:download:stooq:daily';
+    protected static $defaultName = 'forex:download:stooq:hourly';
     private string $cacheDir;
 
     public function __construct(string $cacheDir)
@@ -32,17 +35,17 @@ class Download extends Command
 
             return Command::INVALID;
         }
-
-        $archiveFilename = $this->cacheDir . '/stooq/daily_' . date_format(new \DateTime(), 'Y-m-d') . '.zip';
+        $progressBar = new ProgressBar($output, 0);
+        $archiveFilename = $this->cacheDir . '/stooq/hourly_' . date_format(new \DateTime(), 'Y-m-d') . '.zip';
 
         if (!is_dir(dirname($archiveFilename))) {
             mkdir(dirname($archiveFilename), 0777, true);
         }
 
-        if ($this->fetchArchive($archiveFilename)) {
+        if ($this->fetchArchive($archiveFilename, $progressBar)) {
             foreach ($pairs as $pair) {
                 $pair = Pair::fromString($pair);
-                $file = $this->cacheDir . '/stooq/' . str_replace('/', '', $pair->symbol() . '_D.csv');
+                $file = $this->cacheDir . '/stooq/' . str_replace('/', '', $pair->symbol() . '_H.csv');
 
                 if (!is_dir(dirname($file))) {
                     mkdir(dirname($file), 0777, true);
@@ -55,7 +58,7 @@ class Download extends Command
                     $process = new Process(
                         [
                             './bin/console',
-                            'forex:download:stooq:process',
+                            'forex:download:stooq:process:hourly',
                             '--pair',
                             $pair->symbol()
                         ],
@@ -75,8 +78,8 @@ class Download extends Command
 
     private function unpack(string $archive, Pair $pair): ?string {
         $files = [
-            'data/daily/world/currencies\major/'.strtolower($pair->first()).strtolower($pair->second()).'.txt',
-            'data/daily/world/currencies\other/'.strtolower($pair->first()).strtolower($pair->second()).'.txt',
+            'data/hourly/world/currencies\major/'.strtolower($pair->first()).strtolower($pair->second()).'.txt',
+            'data/hourly/world/currencies\other/'.strtolower($pair->first()).strtolower($pair->second()).'.txt',
             ];
         $zip = new \ZipArchive();
         if ($zip->open($archive)) {
@@ -93,19 +96,17 @@ class Download extends Command
         return null;
     }
 
-    private function fetchArchive(string $archiveFilename): bool
+    private function fetchArchive(string $archiveFilename, ProgressBar $progressBar): bool
     {
-
-        var_dump($archiveFilename);
         if (!file_exists($archiveFilename)) {
             $client = new Client();
+            //$progressBar->start();
             $client->request(
                 'GET',
-                'https://static.stooq.com/db/h/d_world_txt.zip',
+                'https://static.stooq.pl/db/h/h_world_txt.zip',
                 [
-                    'debug' => false,
+                    'debug' => true,
                     'sink' => $archiveFilename,
-
                 ]
             );
         }

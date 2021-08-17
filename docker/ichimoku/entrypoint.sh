@@ -30,4 +30,4 @@ composer install
 ./bin/console doctrine:migrations:migrate --no-interaction
 ./bin/console setup:rabbitmq
 
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+/usr/bin/supervisord -c /etc/supervisord.conf
