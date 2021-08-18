@@ -10,14 +10,14 @@ use CrazyGoat\Forex\ValueObject\NamedPrice;
 
 class Ichimoku extends SimpleIndicatorAbstract
 {
-    private int $tekan;
+    private int $tenkan;
     private int $kijun;
     private int $spanB;
 
-    public function __construct(int $tekan = 9, int $kijun = 26, int $spanB = 56)
+    public function __construct(int $tenkan = 9, int $kijun = 26, int $spanB = 52)
     {
-        parent::__construct(max($tekan, $kijun, $spanB));
-        $this->tekan = $tekan;
+        parent::__construct(max($tenkan, $kijun, $spanB));
+        $this->tenkan = $tenkan;
         $this->kijun = $kijun;
         $this->spanB = $spanB;
     }
@@ -29,7 +29,7 @@ class Ichimoku extends SimpleIndicatorAbstract
         $kijun = $this->mean($this->kijun);
 
         return new MultiPrice(
-            new NamedPrice('tekan', $this->mean($this->tekan)),
+            new NamedPrice('tenkan', $this->mean($this->tenkan)),
             new NamedPrice('kijun', $kijun),
             new NamedPrice('spanA', ($current->close() + $kijun) / 2),
             new NamedPrice('spanB', $this->mean($this->spanB)),

@@ -15,26 +15,11 @@ class MysqlTickWriter implements WriterInterface
         $this->connection = $connection;
     }
 
-    public static function createFromConfig(array $params): MysqlTickWriter
-    {
-        $connectionParams = array(
-            'dbname' => 'fx_prices',
-            'user' => 'root',
-            'password' => 'root',
-            'host' => '127.0.0.1',
-            'port' => 6033,
-            'driver' => 'pdo_mysql',
-        );
-        $conn = DriverManager::getConnection($connectionParams);
-        return new MysqlTickWriter($conn);
-    }
-
     public function write(TickPrice $price)
     {;
         if (!$this->connection->isTransactionActive()) {
             $this->connection->beginTransaction();
         }
-        //var_dump($price->formattedTime());
         $this->connection->executeStatement(
             'INSERT INTO tick_data VALUES (:symbol, :time, :bid, :ask) ON DUPLICATE KEY UPDATE bid=:bid, ask=:ask',
             [

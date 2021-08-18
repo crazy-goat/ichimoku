@@ -7,10 +7,10 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * CandleData
  *
- * @ORM\Table(name="candle_data")
+ * @ORM\Table(name="ichimoku_data")
  * @ORM\Entity
  */
-class CandleData
+class IchimokuData
 {
     /**
      * @var string
@@ -40,37 +40,37 @@ class CandleData
     private $period;
 
     /**
-     * @var string
+     * @var float
      *
-     * @ORM\Column(name="open", type="decimal", precision=20, scale=6, nullable=false)
+     * @ORM\Column(name="tenkan", type="decimal", precision=20, scale=6, nullable=true)
      */
-    private $open;
+    private $tenkan;
 
     /**
-     * @var string
+     * @var float
      *
-     * @ORM\Column(name="high", type="decimal", precision=20, scale=6, nullable=false)
+     * @ORM\Column(name="kijun", type="decimal", precision=20, scale=6, nullable=true)
      */
-    private $high;
+    private $kijun;
 
     /**
-     * @var string
+     * @var float
      *
-     * @ORM\Column(name="low", type="decimal", precision=20, scale=6, nullable=false)
+     * @ORM\Column(name="span_a", type="decimal", precision=20, scale=6, nullable=true)
      */
-    private $low;
+    private $spanA;
 
     /**
-     * @var string
+     * @var float
      *
-     * @ORM\Column(name="close", type="decimal", precision=20, scale=6, nullable=false)
+     * @ORM\Column(name="span_b", type="decimal", precision=20, scale=6, nullable=true)
      */
-    private $close;
+    private $spanB;
 
     /**
-     * @var bool
+     * @var float
      *
-     * @ORM\Column(name="ichimoku", type="boolean", nullable=false, options={"default" : 0})
+     * @ORM\Column(name="chikou", type="decimal", precision=20, scale=6, nullable=true)
      */
-    private $ichimoku;
+    private $chikou;
 }

@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ProcessCandles extends Command
 {
-    protected static $defaultName = 'forex:process:rabbimq:candle';
+    protected static $defaultName = 'forex:process:rabbitmq:candle';
     private MysqlCandleWriter $mysql;
     private RabbitMqReader $rabbitmq;
 

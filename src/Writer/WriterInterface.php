@@ -6,6 +6,6 @@ use CrazyGoat\Forex\ValueObject\TickPrice;
 
 interface WriterInterface
 {
-    public static function createFromConfig(array $params): self;
+    //public static function createFromConfig(array $params): self;
     public function write(TickPrice $price);
 }

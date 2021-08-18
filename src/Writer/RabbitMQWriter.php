@@ -29,7 +29,7 @@ class RabbitMQWriter implements WriterInterface
         return new self($connection, $params['exchange'] ?? 'prices.fanout');
     }
 
-    public function write(\JsonSerializable $price): AMQPMessage
+    public function write(\JsonSerializable $price, ?string $routing_key = null): AMQPMessage
     {
         $data = $price->jsonSerialize();
 
@@ -37,7 +37,8 @@ class RabbitMQWriter implements WriterInterface
             json_encode($data),
             ['content_type' => 'application/json']
         );
-        $this->channel->batch_basic_publish($message, $this->exchange, $data['symbol'] ?? 'unknown');
+
+        $this->channel->batch_basic_publish($message, $this->exchange, $routing_key ?? $data['symbol'] ?? 'unknown');
         return $message;
     }
 

@@ -21,8 +21,8 @@ class MysqlCandleWriter
             $this->connection->beginTransaction();
         }
         $this->connection->executeStatement(
-            'INSERT INTO candle_data VALUES (:symbol, :time, :period, :open, :high, :low, :close) 
-                ON DUPLICATE KEY UPDATE open=:open, high=:high, low=:low, close=:close',
+            'INSERT INTO candle_data VALUES (:symbol, :time, :period, :open, :high, :low, :close, 0) 
+                ON DUPLICATE KEY UPDATE open=:open, high=:high, low=:low, close=:close, ichimoku=0',
             [
                 'symbol' => $price->pair()->symbol(),
                 'time' => $price->formattedTime(),

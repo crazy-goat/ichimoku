@@ -58,6 +58,11 @@ services:
     arguments:
       $queue: 'save_mysql_candle'
 
+  rabbitmq.reader.ichimoku:
+    class: CrazyGoat\Forex\Reader\RabbitMqReader
+    arguments:
+      $queue: 'save_ichimoku_data'
+
   # commands
   CrazyGoat\Forex\Command\SetupRabbit:
     tags: [ 'console.command' ]
@@ -79,6 +84,11 @@ services:
     tags: [ 'console.command' ]
     arguments:
       $rabbitmq: '@rabbitmq.reader.candle'
+
+  CrazyGoat\Forex\Command\ProcessIchimoku:
+    tags: [ 'console.command' ]
+    arguments:
+      $rabbitmq: '@rabbitmq.reader.ichimoku'
   CrazyGoat\Forex\Stream\Oanda\Command\Stream:
     tags: [ 'console.command' ]
     arguments:

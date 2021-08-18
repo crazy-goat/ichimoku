@@ -100,7 +100,7 @@ class DownloadHourly extends Command
     {
         if (!file_exists($archiveFilename)) {
             $client = new Client();
-            //$progressBar->start();
+            $client->request('GET', 'https://stooq.com/q/l/s/?t='.substr(uniqid(),0,4));
             $client->request(
                 'GET',
                 'https://static.stooq.pl/db/h/h_world_txt.zip',

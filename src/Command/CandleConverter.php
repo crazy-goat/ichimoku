@@ -79,7 +79,7 @@ class CandleConverter extends Command
             function (string $symbol): Pair {
                 return Pair::fromString($symbol);
             },
-            $this->connection->executeQuery('select symbol from tick_data group by symbol order by symbol')->fetchFirstColumn()
+            $this->connection->executeQuery('select symbol from candle_data group by symbol order by symbol')->fetchFirstColumn()
         );
     }
 

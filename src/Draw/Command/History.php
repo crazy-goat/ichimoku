@@ -68,7 +68,7 @@ class History extends Command
 
                 $draw = new \CrazyGoat\Forex\Draw\History($terminal->getHeight(), $min, $max, ...$past->list());
 
-                $tekan = PriceArray::fromNamedMultiPrice('tekan', ...$indicators->history('ichimoku'));
+                $tenkan = PriceArray::fromNamedMultiPrice('tenkan', ...$indicators->history('ichimoku'));
                 $kijun = PriceArray::fromNamedMultiPrice('kijun', ...$indicators->history('ichimoku'));
                 $chikou = PriceArray::fromNamedMultiPrice('chikou', ...$indicators->history('ichimoku'));
                 $chikou2 = Offset::move(-26, ...$chikou);

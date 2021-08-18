@@ -48,9 +48,11 @@ class SetupRabbit extends Command
         $channel = $this->rabbitMQ->channel();
         $channel->queue_declare('save_mysql_tick', false, true, false, false, false, $args);
         $channel->queue_declare('save_mysql_candle', false, true, false, false, false, $args);
+        $channel->queue_declare('save_ichimoku_data', false, true, false, false, false, $args);
 
         $channel->queue_bind('save_mysql_candle','candle.import');
         $channel->queue_bind('save_mysql_tick','prices.import');
+        $channel->queue_bind('save_ichimoku_data','amq.direct', 'save_ichimoku_data');
         $channel->close();
     }
 }

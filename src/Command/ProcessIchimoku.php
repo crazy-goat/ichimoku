@@ -5,19 +5,18 @@ declare(strict_types=1);
 namespace CrazyGoat\Forex\Command;
 
 use CrazyGoat\Forex\Reader\RabbitMqReader;
-use CrazyGoat\Forex\ValueObject\TickPrice;
-use CrazyGoat\Forex\Writer\MysqlTickWriter;
+use CrazyGoat\Forex\Writer\MysqlIchimokuWriter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ProcessTicks extends Command
+class ProcessIchimoku extends Command
 {
-    protected static $defaultName = 'forex:process:rabbitmq:tick';
+    protected static $defaultName = 'forex:process:rabbitmq:ichimoku';
     private RabbitMqReader $rabbitmq;
-    private MysqlTickWriter $mysql;
+    private MysqlIchimokuWriter $mysql;
 
-    public function __construct(MysqlTickWriter $mysql, RabbitMqReader $rabbitmq)
+    public function __construct(MysqlIchimokuWriter $mysql, RabbitMqReader $rabbitmq)
     {
         parent::__construct();
         $this->mysql = $mysql;
@@ -32,12 +31,13 @@ class ProcessTicks extends Command
                     $massage = reset($massages);
                     foreach ($massages as $massage) {
                         $data = json_decode($massage->body, true);
-                        $this->mysql->write(TickPrice::fromArray($data));
+                        $this->mysql->write(\CrazyGoat\Forex\ValueObject\IchimokuData::fromArray($data));
                     }
                     $this->mysql->ack();
                     $this->rabbitmq->ack($massage);
                 }
             } catch (\Throwable $exception) {
+                die(var_dump($exception->getMessage()));
                 if ($massages !== []) {
                     $massage = reset($massages);
                     $this->mysql->nack();
