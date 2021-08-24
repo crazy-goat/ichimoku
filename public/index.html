@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="Test your JavaScript, CSS, HTML or CoffeeScript online with JSFiddle code editor." name="description">
+    <meta content="online javascript editor, testing javascript online, online ide, online code editor, html, css, coffeescript, scss online editor"
+          name="keywords">
+    <meta content="JSFiddle" name="author">
+    <meta content="share alike" name="copyright">
+
+    <meta content="index, follow" name="robots">
+    <meta content="index, follow" name="googlebot">
+
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta content="#2E71FF" name="theme-color">
+    <style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%
+    }
+    </style>
+</head>
+<body>
+
+
+<script src="https://unpkg.com/lightweight-charts@3.5.0/dist/lightweight-charts.standalone.production.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+var chart = LightweightCharts.createChart(document.body, {
+    layout: {
+        backgroundColor: '#000000',
+        textColor: 'rgba(255, 255, 255, 0.9)',
+    },
+    grid: {
+        vertLines: {
+            color: 'rgba(197, 203, 206, 0.15)',
+        },
+        horzLines: {
+            color: 'rgba(197, 203, 206, 0.15)',
+        },
+    },
+    crosshair: {
+        mode: LightweightCharts.CrosshairMode.Normal,
+    },
+    rightPriceScale: {
+        borderColor: 'rgba(197, 203, 206, 0.8)',
+    },
+    timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderColor: 'rgba(197, 203, 206, 0.8)',
+    },
+});
+
+var candleSeries = chart.addCandlestickSeries({
+    upColor: 'rgba(255, 144, 0, 1)',
+    downColor: '#000',
+    borderDownColor: 'rgba(255, 144, 0, 1)',
+    borderUpColor: 'rgba(255, 144, 0, 1)',
+    wickDownColor: 'rgba(255, 144, 0, 1)',
+    wickUpColor: 'rgba(255, 144, 0, 1)',
+    priceFormat: {
+        precision: 5,
+        minMove: 0.00001,
+    }
+});
+
+var kumoSeries = chart.addCandlestickSeries({
+    upColor: 'rgba(100, 255, 100, 0.2)',
+    downColor: 'rgba(255, 100, 100, 0.2)',
+    wickVisible: false,
+    borderVisible: false,
+    priceFormat: {
+        precision: 5,
+        minMove: 0.00001,
+    }
+});
+var kijun = chart.addLineSeries({
+    color: 'rgba(0, 0, 255, 1)',
+    lineWidth: 3,
+});
+
+var tenkan = chart.addLineSeries({
+    color: 'rgba(255, 0, 0, 1)',
+    lineWidth: 3,
+});
+
+var chikou = chart.addLineSeries({
+    color: 'rgba(0, 255, 0, 1)',
+    lineWidth: 2,
+});
+
+var spanA = chart.addLineSeries({
+    color: 'rgba(0, 255, 0, 0.3)',
+    lineWidth: 1,
+});
+
+var spanB = chart.addLineSeries({
+    color: 'rgba(255, 0, 0, 0.3)',
+    lineWidth: 1,
+});
+
+
+fetch('/api/candles?stocks=GBP/USD&period=H4')
+    .then(response => response.json())
+    .then(data => candleSeries.setData(data));
+
+fetch('/api/ichimoku?stocks=GBP/USD&period=H4')
+    .then(response => response.json())
+    .then((data) => {
+        kijun.setData(data.kijun);
+        tenkan.setData(data.tenkan);
+        chikou.setData(data.chikou);
+        spanA.setData(data.spanA);
+        spanB.setData(data.spanB);
+        var kumo = [];
+
+        for (var i = 0; i < data.spanA.length; i++) {
+            kumo.push({
+                time: data.spanA[i].time,
+                open: data.spanB[i].value,
+                high: data.spanB[i].value,
+                close: data.spanA[i].value,
+                low: data.spanA[i].value,
+            });
+        }
+        kumoSeries.setData(kumo);
+
+        candleSeries.setMarkers(data.signals);
+    });
+//]]></script>
+</body>
+</html>

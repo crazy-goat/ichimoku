@@ -37,7 +37,6 @@ class ProcessIchimoku extends Command
                     $this->rabbitmq->ack($massage);
                 }
             } catch (\Throwable $exception) {
-                die(var_dump($exception->getMessage()));
                 if ($massages !== []) {
                     $massage = reset($massages);
                     $this->mysql->nack();

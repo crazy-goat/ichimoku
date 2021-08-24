@@ -29,7 +29,7 @@ class CreateCandles extends Command
 
     protected function configure()
     {
-        $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED, 'Forex pair');
+        $this->addOption('pair', 'p', InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY, 'Forex pair');
         $this->addOption('period', 'P', InputOption::VALUE_REQUIRED, 'Period 1,5,15 ... D,W', Period::H4);
         $this->addOption('date', 'd', InputOption::VALUE_REQUIRED, 'Date start from. Format YYYY-MM-DD');
     }
@@ -40,10 +40,9 @@ class CreateCandles extends Command
         $period = Period::fromString($input->getOption('period'));
         $rabbitMQ = RabbitMQWriter::createFromConfig(['exchange' => 'candle.import']);
 
-
         foreach ($pairs as $pair) {
-            $lastCandle = null;
             $dateFrom = $this->fetchStartingDate($pair, $period);
+            $previousCandle = $this->previousCandle($pair, $period, $dateFrom);
 
             $interval = new \DateInterval('PT' . PeriodTime::seconds($period) . 'S');
             $dateRange = new \DatePeriod($dateFrom, $interval, new \DateTime('now', new \DateTimeZone('UTC')));
@@ -51,11 +50,11 @@ class CreateCandles extends Command
             /** @var \DateTime $time */
             foreach ($dateRange as $time) {
                 $output->writeln(sprintf("Pair: %s, time: %s", $pair->symbol(), $time->format('Y-m-d H:i:s')));
-                $candle = $this->createFromTicks($pair, $period, $time, $lastCandle);
+                $candle = $this->createFromTicks($pair, $period, $time, $previousCandle);
                 if ($candle instanceof Candle) {
                     $rabbitMQ->write($candle);
                     $rabbitMQ->ack();
-                    $lastCandle = $candle;
+                    $previousCandle = $candle;
                 }
             }
         }
@@ -130,18 +129,35 @@ class CreateCandles extends Command
     private function createFromTicks(Pair $pair, Period $period, \DateTime $time, ?Candle $last): ?Candle
     {
         $data = $this->connection->executeQuery(
-            'SELECT MAX(td.bid) as high, MIN(td.bid) as low, td.open , td.close FROM
+            'SELECT 
+                MIN(bid) AS low,
+                MAX(bid) AS high,
                 (SELECT 
-                    bid,
-                    FIRST_VALUE(bid) over (ORDER BY `time`) as `open`,
-                    LAST_VALUE(bid) over (ORDER BY `time`) as `close`
-                FROM
-                    fx_prices.tick_data
-                WHERE
-                    symbol = :symbol
-                        AND `time` >= :start
-                        AND `time` < :end 
-                        ORDER BY `time`) as td',
+                        otd.bid
+                    FROM
+                        tick_data AS otd
+                    WHERE
+                        otd.symbol = :symbol
+                            AND otd.time >= :start
+                            AND otd.time < :end
+                    ORDER BY otd.time ASC
+                    LIMIT 1) AS open,
+                (SELECT 
+                        ctd.bid
+                    FROM
+                        tick_data ctd
+                    WHERE
+                        symbol = :symbol
+                            AND ctd.time >= :start
+                            AND ctd.time < :end
+                    ORDER BY ctd.time DESC
+                    LIMIT 1) AS close
+            FROM
+                tick_data
+            WHERE
+                symbol = :symbol
+                    AND `time` >= :start
+                    AND `time` < :end',
             [
                 'symbol' => $pair->symbol(),
                 'start' => $time->format('Y-m-d H:i:s.u'),
@@ -161,6 +177,25 @@ class CreateCandles extends Command
                     ]
                 )
             );
+        }
+
+        return null;
+    }
+
+    private function previousCandle(Pair $pair, Period $period, \DateTime $dateFrom): ?Candle
+    {
+        $data = $this->connection->executeQuery(
+            'SELECT * FROM candle_data WHERE symbol=:symbol AND period=:period AND time < :dateFrom ORDER BY time DESC LIMIT 1',
+            [
+                'symbol' => $pair->symbol(),
+                'period' => $period->period(),
+                'dateFrom' => $dateFrom->format(Candle::DATE_FORMAT)
+            ]
+        )->fetchAssociative();
+
+        if (is_array($data)) {
+            $data['date'] = substr($data['time'], 0, -3);
+            return Candle::fromArray($data);
         }
 
         return null;

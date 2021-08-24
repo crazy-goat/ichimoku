@@ -11,6 +11,7 @@
     "ext-zip": "*",
     "amphp/http-server": "^2.1",
     "amphp/http-server-router": "^1.0",
+    "amphp/http-server-static-content": "^1.0",
     "amphp/websocket-client": "^1.0",
     "amphp/websocket-server": "^2.0",
     "composer/package-versions-deprecated": "1.11.99.2",
@@ -29,7 +30,8 @@
     "symfony/process": "5.3.*",
     "symfony/proxy-manager-bridge": "5.3.*",
     "symfony/runtime": "5.3.*",
-    "symfony/yaml": "5.3.*"
+    "symfony/yaml": "5.3.*",
+    "ext-pdo": "*"
   },
   "config": {
     "optimize-autoloader": true,

@@ -11,6 +11,9 @@
     "amphp/dns": {
         "version": "v1.2.3"
     },
+    "amphp/file": {
+        "version": "v1.0.2"
+    },
     "amphp/hpack": {
         "version": "v3.1.1"
     },
@@ -25,6 +28,9 @@
     },
     "amphp/http-server-router": {
         "version": "v1.0.2"
+    },
+    "amphp/http-server-static-content": {
+        "version": "v1.0.6"
     },
     "amphp/parallel": {
         "version": "v1.4.0"

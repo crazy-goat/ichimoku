@@ -42,6 +42,8 @@ class DownloadHourly extends Command
             mkdir(dirname($archiveFilename), 0777, true);
         }
 
+        $output->writeln('Writing to file: '.$archiveFilename);
+
         if ($this->fetchArchive($archiveFilename, $progressBar)) {
             foreach ($pairs as $pair) {
                 $pair = Pair::fromString($pair);

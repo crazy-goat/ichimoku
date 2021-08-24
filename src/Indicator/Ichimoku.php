@@ -22,16 +22,16 @@ class Ichimoku extends SimpleIndicatorAbstract
         $this->spanB = $spanB;
     }
 
-
     public function value()
     {
         $current = $this->current();
         $kijun = $this->mean($this->kijun);
+        $tenkan = $this->mean($this->tenkan);
 
         return new MultiPrice(
-            new NamedPrice('tenkan', $this->mean($this->tenkan)),
+            new NamedPrice('tenkan', $tenkan),
             new NamedPrice('kijun', $kijun),
-            new NamedPrice('spanA', ($current->close() + $kijun) / 2),
+            new NamedPrice('spanA', ($tenkan + $kijun) / 2),
             new NamedPrice('spanB', $this->mean($this->spanB)),
             new NamedPrice('chikou', $current->close())
         );
@@ -39,8 +39,32 @@ class Ichimoku extends SimpleIndicatorAbstract
 
     private function mean(int $n): float
     {
-        return (HighestPrice::calculate(CandlePrice::CLOSE, ...$this->last($n)) +
-                   LowestPrice::calculate(CandlePrice::CLOSE, ...$this->last($n))) / 2;
+        return (HighestPrice::calculate(CandlePrice::HIGH, ...$this->last($n)) +
+                   LowestPrice::calculate(CandlePrice::LOW, ...$this->last($n))) / 2;
 
+    }
+
+    /**
+     * @return int
+     */
+    public function tenkanLength(): int
+    {
+        return $this->tenkan;
+    }
+
+    /**
+     * @return int
+     */
+    public function kijunLength(): int
+    {
+        return $this->kijun;
+    }
+
+    /**
+     * @return int
+     */
+    public function spanBLength(): int
+    {
+        return $this->spanB;
     }
 }
